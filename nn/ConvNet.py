@@ -11,6 +11,7 @@ from builtins import range
 from timeit import default_timer as timer
 
 import numpy as np
+
 from mode.Mode import Mode
 
 
@@ -34,14 +35,17 @@ class Cnn:
         for i in range(int(math.ceil(num / n))):
             yield data[arr[n * i:n * (i + 1)], :, :, :], label[arr[n * i:n * (i + 1)]]
 
-    def test(self, images, valid_label):
-
-        logits, fs_max_pool_shape = Cnn.__forward_pass(images, self.feature_extractor_layers,
+    def get_logits(self, data):
+        logits, fs_max_pool_shape = Cnn.__forward_pass(data, self.feature_extractor_layers,
                                                        self.classifier_layers, Mode.TEST)
-        loss = self.loss_function.forward_pass(logits, valid_label)
+        return logits
+
+    def test(self, images):
+
+        logits = self.get_logits(images)
+
         label = np.argmax(logits, axis=1)
-        acc = np.mean(label == valid_label) * 100
-        return loss, acc
+        return logits, label
 
     @staticmethod
     def __forward(inputs, cnn_layers, mode):
@@ -76,12 +80,11 @@ class Cnn:
         feature_extractor_grad_output = Cnn.__backward(classifier_grad_output, feature_extractor_layers)
         return feature_extractor_grad_output
 
-    def train(self, data, label, valid_data, valid_label, batch, no_of_epochs):
+    def train(self, data, label, valid_data, valid_label, batch, no_of_epochs, learning_rate, print_every):
         assert data.shape[0] == label.shape[0], " The training data and training label must be the same number"
         assert valid_data.shape[0] == valid_label.shape[0], " The validation data and validation label must be the" \
                                                             "same number"
         # hyper-parameters
-        step = 1e-3
         start = timer()
         running_loss = 0
         for epoch in range(no_of_epochs):
@@ -102,13 +105,15 @@ class Cnn:
                 #   update parameters based on gradients calculated
                 for layer in self.layers:
                     if layer in self.optimizers:
-                        layer.update_params(self.optimizers[layer], step)
+                        layer.update_params(self.optimizers[layer], learning_rate)
 
             # calculate validation loss
-            if (epoch + 1) % 1 == 0:
-                valid_loss, acc = self.test(valid_data, valid_label)
+            if (epoch + 1) % print_every == 0:
+                logits, label = self.test(valid_data)
+                valid_loss = self.loss_function.forward_pass(logits, valid_label)
+                acc = np.mean(label == valid_label) * 100
                 print("The validation loss is ", valid_loss, " Accuracy: ", acc)
-                print("The loss after ", epoch, " iterations, learning rate is", step, "iterations is ",
+                print("The loss after ", epoch, " iterations, learning rate is", learning_rate, "iterations is ",
                       running_loss / (data.shape[0] / batch), " using ",
                       timer() - start)
 
