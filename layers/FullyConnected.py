@@ -50,7 +50,6 @@ class FC(Layer):
         db = np.sum(upstream_grad, axis=0, keepdims=True)
         d_inp = np.dot(upstream_grad, self.weight.T)
 
-        #        return {"inp" : d_inp, "weight" : dw, "bias" : db}
         self._d_params["weight"] = dw
         self._d_params["bias"] = db
         return d_inp

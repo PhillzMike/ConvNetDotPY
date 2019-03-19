@@ -110,13 +110,18 @@ class NN:
                 for layer in self.layers:
                     if layer in self.optimizers:
                         layer.update_params(self.optimizers[layer], learning_rate)
+
             training_loss.append(running_loss / (data.shape[0] / batch))
             # calculate validation loss
-            logits, label_gotten = self.test(valid_data)
-            valid_loss = self.loss_function.forward_pass(logits, valid_label)
-            acc = np.mean(label_gotten == valid_label) * 100
-            validation_loss.append(valid_loss)
-            validation_accuracy.append(acc)
+            valid_loss = 0
+            acc = 0
+            for v_data, v_label in NN.__next_batch(valid_data, valid_label, batch):
+                logits, label_gotten = self.test(v_data)
+                valid_loss += (self.loss_function.forward_pass(logits, v_label) * v_data.shape[0])
+                acc += np.mean(label_gotten == v_label) * 100 * v_label.shape[0]
+
+            validation_loss.append(valid_loss / valid_data.shape[0])
+            validation_accuracy.append(acc / valid_data.shape[0])
             if epoch % print_every == 0:
                 print("The validation loss is ", valid_loss, " Accuracy: ", acc)
                 print("The loss after ", epoch, " iterations, learning rate is", learning_rate, "iterations is ",
