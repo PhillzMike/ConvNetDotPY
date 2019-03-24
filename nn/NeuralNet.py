@@ -123,7 +123,7 @@ class NN:
             validation_loss.append(valid_loss / valid_data.shape[0])
             validation_accuracy.append(acc / valid_data.shape[0])
             if epoch % print_every == 0:
-                print("The validation loss is ", valid_loss, " Accuracy: ", acc)
+                print("The validation loss is ", validation_loss[-1], " Accuracy: ", validation_accuracy[-1])
                 print("The loss after ", epoch, " iterations, learning rate is", learning_rate, "iterations is ",
                       training_loss[-1], " using ", timer() - start)
 
