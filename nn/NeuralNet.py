@@ -32,7 +32,6 @@ class NN:
         num = data.shape[0]
         arr = np.arange(num)
         np.random.shuffle(arr)
-        print("data", data.shape)
         for i in range(int(math.ceil(num / n))):
             yield data[arr[n * i:n * (i + 1)], :], label[arr[n * i:n * (i + 1)]]
 
@@ -62,7 +61,8 @@ class NN:
         num_of_objects = inputs.shape[0]
         feature_extractor_output = NN.__forward(inputs, feature_extractor_layers, mode)
         feature_extractor_output_shape = feature_extractor_output.shape
-        feature_extractor_output.shape = (num_of_objects, -1)
+        # feature_extractor_output.shape = (num_of_objects, -1)
+        print("output", feature_extractor_output_shape)
         classifier_scores = NN.__forward(feature_extractor_output, classifier_layers, mode)
         return classifier_scores, feature_extractor_output_shape
 
@@ -77,7 +77,7 @@ class NN:
     @staticmethod
     def __backward_pass(d_logits, feature_extractor_layers, classifier_layers, feature_extractor_output_shape):
         classifier_grad_output = NN.__backward(d_logits, classifier_layers)
-        classifier_grad_output.shape = feature_extractor_output_shape
+        # classifier_grad_output.shape = feature_extractor_output_shape
         feature_extractor_grad_output = NN.__backward(classifier_grad_output, feature_extractor_layers)
         return feature_extractor_grad_output
 

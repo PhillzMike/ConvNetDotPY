@@ -43,7 +43,7 @@ class Conv(Layer):
 
         k = np.repeat(np.arange(C), field_height * field_width).reshape(-1, 1)
 
-        return (k, i, j)
+        return k, i, j
 
     def _im2col_indices(self, x, field_height, field_width, padding=1, stride=1):
         """ An implementation of im2col based on some fancy indexing """
