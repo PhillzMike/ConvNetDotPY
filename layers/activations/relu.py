@@ -7,10 +7,10 @@ Created on Sun Oct 28 16:56:42 2018
 """
 import numpy as np
 
-from layers.layer import Layer
+from layers.activations.Activation import Activation
 
 
-class Relu(Layer):
+class Relu(Activation):
     """This class performs the Rectified Linear Unit function used for non linearity in deep learning"""
 
     def __init__(self, inp_shape):

@@ -7,7 +7,7 @@ Created on Sun Oct 21 12:45:06 2018
 import numpy as np
 
 
-def pad(self, X, pad, value=0):
+def pad(X, pad, value=0):
     """
 
         :param self:

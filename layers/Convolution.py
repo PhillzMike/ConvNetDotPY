@@ -110,7 +110,7 @@ class Conv(Layer):
         if self._pad > 0:
             # The pad method from Pad.py
             act_reg = pad(act_reg, self._pad)
-            # db = np.zeros(b.shape)
+            db = np.zeros(b.shape)
         for h in range(upstream_grad.shape[1]):
             for w in range(upstream_grad.shape[2]):
                 x = np.reshape(np.matmul(np.reshape(filt, (
@@ -136,6 +136,7 @@ class Conv(Layer):
             self._params[param] += optimizer[param].calc_update(step, self._d_params[param])
 
     # first implementation of the convolution layer, slow
+
 #    def convolve(self,X,f,stride=1,pad=0):
 #            n = X.shape[2]  #width of each image
 #            h = X.shape[1] #hieght of each image
@@ -168,3 +169,4 @@ class Conv(Layer):
 #                endRow += stride
 #            
 #            return actReg
+
