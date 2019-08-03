@@ -14,7 +14,9 @@ class FC(Layer):
     def __init__(self, fan_in, fan_out):
         super(FC, self).__init__(fan_in)
         weight = np.random.randn(fan_in, fan_out) / np.sqrt(fan_in / 2)
+        weight = np.float32(weight)
         bias = np.zeros((1, fan_out))
+        bias = np.float32(bias)
         self._params = {"weight": weight, "bias": bias}
         self._d_params = {"weight": np.zeros_like(weight), "bias": np.zeros_like(bias)}
 

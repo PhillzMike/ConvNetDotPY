@@ -11,7 +11,7 @@ from optimizers.optimizer import Optimizer
 
 class Adam(Optimizer):
 
-    def __init__(self, eps=1e-7, beta1=0.9, beta2=0.999):
+    def __init__(self, eps=1e-8, beta1=0.9, beta2=0.999):
         self.__eps = eps
         self.__beta1 = beta1
         self.__beta2 = beta2

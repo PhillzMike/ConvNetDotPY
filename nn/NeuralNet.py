@@ -62,7 +62,6 @@ class NN:
         feature_extractor_output = NN.__forward(inputs, feature_extractor_layers, mode)
         feature_extractor_output_shape = feature_extractor_output.shape
         # feature_extractor_output.shape = (num_of_objects, -1)
-        print("output", feature_extractor_output_shape)
         classifier_scores = NN.__forward(feature_extractor_output, classifier_layers, mode)
         return classifier_scores, feature_extractor_output_shape
 
@@ -81,25 +80,39 @@ class NN:
         feature_extractor_grad_output = NN.__backward(classifier_grad_output, feature_extractor_layers)
         return feature_extractor_grad_output
 
-    def train(self, data, label, valid_data, valid_label, batch, no_of_epochs, learning_rate, print_every):
+    @staticmethod
+    def __get_train_and_valid_data(data, label, validation_train_ratio):
+        num = data.shape[0]
+        arr = np.arange(num)
+        np.random.shuffle(arr)
+
+        train_length = int(len(data) * (1 - validation_train_ratio))
+        return data[arr[:train_length], :], label[arr[:train_length]], data[arr[train_length:], :], label[
+            arr[train_length:]]
+
+    def train(self, data, label, validation_train_ratio, batch, no_of_epochs, learning_rate, print_every):
+        print(data.shape)
+        print(label.shape)
         assert data.shape[0] == label.shape[0], " The training data and training label must be the same number"
-        assert valid_data.shape[0] == valid_label.shape[0], " The validation data and validation label must be the" \
-                                                            "same number"
+        assert 0 < validation_train_ratio <= 1, "The validation to train ratio is wrong"
+
+        train_data, train_label, valid_data, valid_label = NN.__get_train_and_valid_data(data, label,
+                                                                                         validation_train_ratio)
         # hyper-parameters
         start = timer()
-        running_loss = 0
         training_loss = list()
         validation_loss = list()
         validation_accuracy = list()
         for epoch in range(1, no_of_epochs + 1):
-            for X, Y in NN.__next_batch(data, label, batch):
+            running_loss = 0
+            for X, Y in NN.__next_batch(train_data, train_label, batch):
                 #   forward pass into the network
                 logits, fs_max_pool_shape = NN.__forward_pass(X, self.feature_extractor_layers,
                                                               self.classifier_layers, Mode.TRAIN)
                 #   calculate loss
                 data_loss = self.loss_function.forward_pass(logits, Y)
 
-                running_loss += data_loss
+                running_loss += data_loss * X.shape[0]
                 #   calculate loss gradient with respect to logits
                 d_scores = self.loss_function.backward_pass(Y)
                 #   backward pass through the network
@@ -111,7 +124,7 @@ class NN:
                     if layer in self.optimizers:
                         layer.update_params(self.optimizers[layer], learning_rate)
 
-            training_loss.append(running_loss / (data.shape[0] / batch))
+            training_loss.append(running_loss / train_data.shape[0])
             # calculate validation loss
             valid_loss = 0
             acc = 0
@@ -127,7 +140,6 @@ class NN:
                 print("The loss after ", epoch, " iterations, learning rate is", learning_rate, "iterations is ",
                       training_loss[-1], " using ", timer() - start)
 
-            running_loss = 0
         return training_loss, validation_loss, validation_accuracy
 
     def save(self, filename):

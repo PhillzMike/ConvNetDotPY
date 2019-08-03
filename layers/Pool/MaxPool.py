@@ -4,6 +4,8 @@ Created on Sun Oct 21 13:23:20 2018
 
 @author: f
 """
+from timeit import default_timer as timer
+
 import numpy as np
 
 from layers.Pool.Pool import Pool
@@ -20,6 +22,8 @@ class MaxPool(Pool):
 
     # TODO Re implement maxPool layer, using the boolean element wise multiplication
     def forward_pass(self, inp):
+        # print("forward pass, max pool")
+        start = timer()
         self._inp = inp
         n = self._inp.shape[2]  # width of each image
         h = self._inp.shape[1]  # hieght of each image
@@ -29,7 +33,7 @@ class MaxPool(Pool):
         out_height = int((h - f) / stride + 1)
         num_of_images = self._inp.shape[0]
 
-        output = np.zeros((num_of_images, out_height, out_width, self._inp.shape[3]))
+        output = np.zeros((num_of_images, out_height, out_width, self._inp.shape[3]), dtype=np.float32)
         start_row = 0
         end_row = f
         filter_depth = self._inp.shape[3]  # since the depth of the filter should be the same as the depth of the image
@@ -50,9 +54,12 @@ class MaxPool(Pool):
 
         self._indices = indices
         self._trained = True
+        # print("done", timer() - start)
         return output
 
     def backward_pass(self, upstream_grad):
+        # print("backward pass max pool")
+        # start = timer()
         assert self._trained  # check to make sure forwardPass has been called
 
         stride = self._stride
@@ -63,4 +70,5 @@ class MaxPool(Pool):
                 for k in range(upstream_grad.shape[3]):
                     d_inp[range(self._inp.shape[0]), positional_index[i, j, k, 0, :] + (i * stride),
                     positional_index[i, j, k, 1, :] + (j * stride), k:k + 1] = upstream_grad[:, i, j, k:k + 1]
+        # print("done", timer() - start)
         return d_inp

@@ -12,7 +12,7 @@ from optimizers.optimizer import Optimizer
 
 class RmsProp(Optimizer):
 
-    def __init__(self, decay_rate, eps=1e-7):
+    def __init__(self, decay_rate, eps=1e-8):
         self.__decay_rate = decay_rate
         self.__eps = eps
         self.__grad_squared = 0

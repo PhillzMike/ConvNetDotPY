@@ -29,11 +29,11 @@ class Layer(ABC):
         if len(value.shape[1:]) != 1:
             if self.__inp_shape != value.shape[1:]:
                 raise ValueError("value's shape ", value.shape, " does not correspond to the layer's shape ",
-                                 +                             self.__inp_shape)
+                                 self.__inp_shape)
         else:
             if self.__inp_shape != value.shape[1]:
                 raise ValueError("value's shape ", value.shape, " does not correspond to the layer's shape ",
-                                 +                             self.__inp_shape)
+                                 self.__inp_shape)
         self.__inp = value
 
     @property
