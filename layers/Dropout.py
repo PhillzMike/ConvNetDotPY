@@ -14,12 +14,12 @@ class Dropout(Layer):
 
     def __init__(self, inp_shape, p):
         super(Dropout, self).__init__(inp_shape)
-        self.probability = p
-        self._drop_prob = 1
+        self.probability = np.float32(p)
+        self._drop_prob = np.float32(1)
 
     def forward_pass(self, inp):
         self._inp = inp
-        self._drop_prob = 1
+        self._drop_prob = np.float32(1)
         # remember the star in front if inp.shape is to unpack the tuple
         if self.mode == Mode.TRAIN:
             self._drop_prob = ((np.float32(np.random.rand(*self._inp.shape)) < self.probability) / self.probability)

@@ -13,6 +13,8 @@ from mode.Mode import Mode
 class BatchNorm(Layer):
 
     def __init__(self, inp_shape, eps=1e-8, mode=Mode.TRAIN):
+        assert type(inp_shape) == int or len(inp_shape) == 3, \
+            " The batch norm layer currently works for only fully connected layers and convolution layers"
         self._eps = eps
         gamma = np.ones(inp_shape, dtype=np.float32)
         beta = np.zeros(inp_shape, dtype=np.float32)
@@ -39,12 +41,11 @@ class BatchNorm(Layer):
         return list(self._params.keys())
 
     def forward_pass(self, inp):
-        # print("forward pass batch norm")
-        # start = timer()
         self._inp = inp
         if self._mode == Mode.TRAIN:
-            self._mean = np.mean(self._inp, axis=0)
-            self._var = np.var(self._inp, axis=0)
+            axis = (0,) if len(self._inp.shape) == 2 else (0, 1, 2)
+            self._mean = np.mean(self._inp, axis=axis)
+            self._var = np.var(self._inp, axis=axis)
             self._inpNorm = (self._inp - self._mean) / np.sqrt(self._var + self._eps)
             self._running_mean = self._mean if not isinstance(self._running_mean, np.ndarray) \
                 else (0.9 * self._running_mean) + (0.1 * self._mean)
@@ -53,12 +54,9 @@ class BatchNorm(Layer):
             self._trained = True
         else:
             self._inpNorm = (self._inp - self._running_mean) / np.sqrt(self._running_var + self._eps)
-        # print("done", timer()-start)
         return (self._params["gamma"] * self._inpNorm) + self._params["beta"]
 
     def backward_pass(self, upstream):
-        # print("backward pass, batch  norm")
-        # start = timer()
         assert self._trained
 
         d_inp_norm = upstream * self._params["gamma"]
@@ -75,7 +73,6 @@ class BatchNorm(Layer):
         self._var = 1
         self._d_params["gamma"] = d_gamma
         self._d_params["beta"] = d_beta
-        # print("done", timer()- start)
         return d_inp
 
     def update_params(self, optimizer, step):

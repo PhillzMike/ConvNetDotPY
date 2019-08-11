@@ -18,7 +18,8 @@ class FC(Layer):
         bias = np.zeros((1, fan_out))
         bias = np.float32(bias)
         self._params = {"weight": weight, "bias": bias}
-        self._d_params = {"weight": np.zeros_like(weight), "bias": np.zeros_like(bias)}
+        self._d_params = {"weight": np.zeros_like(weight, dtype=np.float32),
+                          "bias": np.zeros_like(bias, dtype=np.float32)}
 
     @property
     def weight(self):

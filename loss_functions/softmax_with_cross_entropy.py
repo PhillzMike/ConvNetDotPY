@@ -17,7 +17,7 @@ class SoftmaxCrossEntropy:
         #   free up space
         del exp_logits, loss_for_each_image
         self.__trained = True
-        return loss
+        return np.float32(loss)
 
     def backward_pass(self, labels):
         assert self.__trained, "backward pass cannot be called before forward pass"

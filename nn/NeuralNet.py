@@ -52,6 +52,7 @@ class NN:
         inp = inputs
         for layer in cnn_layers:
             layer.mode = mode
+            start = timer()
             inp = layer.forward_pass(inp)
         return inp
 
@@ -70,6 +71,7 @@ class NN:
         grad = upstream_grad
         for i in range(len(cnn_layers) - 1, -1, -1):
             layer = cnn_layers[i]
+            start = timer()
             grad = layer.backward_pass(grad)
         return grad
 
@@ -91,8 +93,6 @@ class NN:
             arr[train_length:]]
 
     def train(self, data, label, validation_train_ratio, batch, no_of_epochs, learning_rate, print_every):
-        print(data.shape)
-        print(label.shape)
         assert data.shape[0] == label.shape[0], " The training data and training label must be the same number"
         assert 0 < validation_train_ratio <= 1, "The validation to train ratio is wrong"
 
