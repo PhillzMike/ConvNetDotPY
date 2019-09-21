@@ -4,6 +4,8 @@ Created on Sun Oct 21 15:17:16 2018
 
 @author: f
 """
+import math
+
 import numpy as np
 
 from layers.layer import Layer
@@ -13,9 +15,14 @@ class FC(Layer):
 
     def __init__(self, fan_in, fan_out):
         super(FC, self).__init__(fan_in)
-        weight = np.random.randn(fan_in, fan_out) / np.sqrt(fan_in / 2)
+        gain = math.sqrt(2.0 / 6)
+        std = gain / math.sqrt(fan_in)
+        bound = math.sqrt(3.0) * std
+        bound_for_bias = 1 / math.sqrt(fan_in)
+
+        weight = np.random.uniform(-bound, bound, (fan_in, fan_out))
         weight = np.float32(weight)
-        bias = np.zeros((1, fan_out))
+        bias = np.random.uniform(-bound_for_bias, bound_for_bias, (1, fan_out))
         bias = np.float32(bias)
         self._params = {"weight": weight, "bias": bias}
         self._d_params = {"weight": np.zeros_like(weight, dtype=np.float32),

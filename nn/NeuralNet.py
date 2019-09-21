@@ -52,7 +52,6 @@ class NN:
         inp = inputs
         for layer in cnn_layers:
             layer.mode = mode
-            start = timer()
             inp = layer.forward_pass(inp)
         return inp
 
@@ -71,7 +70,6 @@ class NN:
         grad = upstream_grad
         for i in range(len(cnn_layers) - 1, -1, -1):
             layer = cnn_layers[i]
-            start = timer()
             grad = layer.backward_pass(grad)
         return grad
 

@@ -5,6 +5,8 @@ Created on Sat Oct 20 11:07:35 2018
 @author: f
 """
 
+import math
+
 import numpy as np
 
 from layers.im2col_cython import im2col_cython, col2im_cython
@@ -13,12 +15,25 @@ from layers.layer import Layer
 
 class Conv(Layer):
 
+    @staticmethod
+    def calculate_fan_in_fan_out(input_dim, filter_shape, no_of_filters):
+        fan_in = input_dim * filter_shape[0] * filter_shape[1]
+        fan_out = no_of_filters * filter_shape[0] * filter_shape[1]
+
+        return fan_in, fan_out
+
     def __init__(self, input_shape, filter_shape, no_of_filters, stride=1, padding=0):
         self._stride = stride
         self._pad = padding
-        f = np.random.randn(*(filter_shape + (input_shape[2], no_of_filters))) / np.sqrt(
-            (filter_shape[0] * filter_shape[1] * input_shape[2]) / 2)
-        b = np.zeros(no_of_filters)
+        fan_in, fan_out = Conv.calculate_fan_in_fan_out(input_shape[-1], filter_shape, no_of_filters)
+        gain = math.sqrt(2.0 / 6)
+        std = gain / math.sqrt(fan_in)
+        bound = math.sqrt(3.0) * std
+        print(bound)
+        f = np.random.uniform(-bound, bound, (filter_shape + (input_shape[2], no_of_filters)))
+        bound_for_bias = 1 / math.sqrt(fan_in)
+        print(bound_for_bias)
+        b = np.random.uniform(-bound_for_bias, bound_for_bias, no_of_filters)
         f = np.float32(f)
         b = np.float32(b)
 

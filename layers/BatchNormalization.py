@@ -22,20 +22,12 @@ class BatchNorm(Layer):
         self._mean = 0
         self._var = 1
         self._running_mean = 0
-        self._running_var = 0
+        self._running_var = 1
         super(BatchNorm, self).__init__(inp_shape, mode)
         self._params = {"gamma": gamma, "beta": beta}
         self._d_params = {"gamma": np.zeros_like(gamma, dtype=np.float32),
                           "beta": np.zeros_like(beta, dtype=np.float32)}
         self._trained = False
-
-    # @classmethod
-    # def create_from_shapes(cls, inp_shape, eps, gamma, beta):
-    #     gamma =
-    #     beta =
-    #     inp = np.zeros(inp_shape)
-    #
-    #     return cls(inp, eps, gamma, beta)
 
     def trainable_parameters(self):
         return list(self._params.keys())
@@ -47,10 +39,8 @@ class BatchNorm(Layer):
             self._mean = np.mean(self._inp, axis=axis)
             self._var = np.var(self._inp, axis=axis)
             self._inpNorm = (self._inp - self._mean) / np.sqrt(self._var + self._eps)
-            self._running_mean = self._mean if not isinstance(self._running_mean, np.ndarray) \
-                else (0.9 * self._running_mean) + (0.1 * self._mean)
-            self._running_var = self._var if not isinstance(self._running_var, np.ndarray) \
-                else (0.9 * self._running_var) + (0.1 * self._var)
+            self._running_mean = (0.9 * self._running_mean) + (0.1 * self._mean)
+            self._running_var = (0.9 * self._running_var) + (0.1 * self._var)
             self._trained = True
         else:
             self._inpNorm = (self._inp - self._running_mean) / np.sqrt(self._running_var + self._eps)
@@ -58,7 +48,6 @@ class BatchNorm(Layer):
 
     def backward_pass(self, upstream):
         assert self._trained
-
         d_inp_norm = upstream * self._params["gamma"]
         inp_mean = self._inp - self._mean
         std_inv = 1. / np.sqrt(self._var + self._eps)

@@ -23,7 +23,8 @@ class Dropout(Layer):
         # remember the star in front if inp.shape is to unpack the tuple
         if self.mode == Mode.TRAIN:
             self._drop_prob = ((np.float32(np.random.rand(*self._inp.shape)) < self.probability) / self.probability)
-        return self._inp * self._drop_prob
+        result = self._inp * self._drop_prob
+        return result
 
     def backward_pass(self, upstream_grad):
         grad = upstream_grad * self._drop_prob
