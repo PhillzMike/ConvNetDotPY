@@ -16,13 +16,10 @@ from mode.Mode import Mode
 
 
 class NN:
-    def __init__(self, feature_layers, classifier_layers, loss_function, optimizer):
-        self.feature_extractor_layers = feature_layers
-        self.classifier_layers = classifier_layers
-
-        self.layers = self.feature_extractor_layers + self.classifier_layers
+    def __init__(self, layers, loss_function, optimizer):
+        self.layers = layers
         self.loss_function = loss_function
-
+        # self.input_shape = input_shape
         self._optimizer = optimizer
         self.optimizers = {layer: {param: copy.deepcopy(self._optimizer) for param in layer.trainable_parameters()}
                            for layer in self.layers if len(layer.trainable_parameters()) != 0}
@@ -36,8 +33,7 @@ class NN:
             yield data[arr[n * i:n * (i + 1)], :], label[arr[n * i:n * (i + 1)]]
 
     def get_logits(self, data):
-        logits, fs_max_pool_shape = NN.__forward_pass(data, self.feature_extractor_layers,
-                                                      self.classifier_layers, Mode.TEST)
+        logits = NN.__forward_pass(data, self.layers, Mode.TEST)
         return logits
 
     def test(self, images):
@@ -55,15 +51,10 @@ class NN:
             inp = layer.forward_pass(inp)
         return inp
 
-    # TODO figure out a better way to get the shape of the last activation region, you get sha
     @staticmethod
-    def __forward_pass(inputs, feature_extractor_layers, classifier_layers, mode):
-        num_of_objects = inputs.shape[0]
-        feature_extractor_output = NN.__forward(inputs, feature_extractor_layers, mode)
-        feature_extractor_output_shape = feature_extractor_output.shape
-        # feature_extractor_output.shape = (num_of_objects, -1)
-        classifier_scores = NN.__forward(feature_extractor_output, classifier_layers, mode)
-        return classifier_scores, feature_extractor_output_shape
+    def __forward_pass(inputs, layers, mode):
+        classifier_scores = NN.__forward(inputs, layers, mode)
+        return classifier_scores
 
     @staticmethod
     def __backward(upstream_grad, cnn_layers):
@@ -74,10 +65,8 @@ class NN:
         return grad
 
     @staticmethod
-    def __backward_pass(d_logits, feature_extractor_layers, classifier_layers, feature_extractor_output_shape):
-        classifier_grad_output = NN.__backward(d_logits, classifier_layers)
-        # classifier_grad_output.shape = feature_extractor_output_shape
-        feature_extractor_grad_output = NN.__backward(classifier_grad_output, feature_extractor_layers)
+    def __backward_pass(d_logits, layers):
+        feature_extractor_grad_output = NN.__backward(d_logits, layers)
         return feature_extractor_grad_output
 
     @staticmethod
@@ -90,7 +79,15 @@ class NN:
         return data[arr[:train_length], :], label[arr[:train_length]], data[arr[train_length:], :], label[
             arr[train_length:]]
 
-    def train(self, data, label, validation_train_ratio, batch, no_of_epochs, learning_rate, print_every):
+    # def compile(self):
+    #     assert len(self.layers) != 0, "cannot create model with no layer"
+    #     self.layers[0].initialize(self.input_shape)
+    #     former_layer = self.layers[0]
+    #     for i in range(1, len(self.layers)):
+    #         self.layers[i].initialize(former_layer.get_output_shape())
+    #         former_layer = self.layers[i]
+
+    def train(self, data, label, validation_train_ratio, batch, no_of_epochs, learning_rate_func, print_every):
         assert data.shape[0] == label.shape[0], " The training data and training label must be the same number"
         assert 0 < validation_train_ratio <= 1, "The validation to train ratio is wrong"
 
@@ -103,10 +100,10 @@ class NN:
         validation_accuracy = list()
         for epoch in range(1, no_of_epochs + 1):
             running_loss = 0
+            learning_rate = learning_rate_func(epoch)
             for X, Y in NN.__next_batch(train_data, train_label, batch):
                 #   forward pass into the network
-                logits, fs_max_pool_shape = NN.__forward_pass(X, self.feature_extractor_layers,
-                                                              self.classifier_layers, Mode.TRAIN)
+                logits = NN.__forward_pass(X, self.layers, Mode.TRAIN)
                 #   calculate loss
                 data_loss = self.loss_function.forward_pass(logits, Y)
 
@@ -114,13 +111,13 @@ class NN:
                 #   calculate loss gradient with respect to logits
                 d_scores = self.loss_function.backward_pass(Y)
                 #   backward pass through the network
-                dx = NN.__backward_pass(d_scores, self.feature_extractor_layers, self.classifier_layers,
-                                        fs_max_pool_shape)
+                dx = NN.__backward_pass(d_scores, self.layers)
                 del dx
                 #   update parameters based on gradients calculated
                 for layer in self.layers:
                     if layer in self.optimizers:
                         layer.update_params(self.optimizers[layer], learning_rate)
+
 
             training_loss.append(running_loss / train_data.shape[0])
             # calculate validation loss
