@@ -24,22 +24,11 @@ class Layer(ABC):
     @_inp.setter
     def _inp(self, value):
         assert value is not None, "Value cannot be None"
-        # can be optimized, but it needs to be easy to understand
-        # if len(value.shape[1:]) != 1:
-        #     if self.__inp_shape != value.shape[1:]:
-        #         raise ValueError("value's shape ", value.shape, " does not correspond to the layer's shape ",
-        #                          self.__inp_shape)
-        # else:
-        #     if self.__inp_shape != value.shape[1]:
-        #         raise ValueError("value's shape ", value.shape, " does not correspond to the layer's shape ",
-        #                          self.__inp_shape)
         self.__inp = value
 
     @property
     def mode(self):
         return self._mode
-
-
 
     @mode.setter
     def mode(self, value):
