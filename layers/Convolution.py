@@ -115,7 +115,7 @@ class Conv(Layer):
         w_col = filter_trans.reshape(n_filters, -1)
 
         self._x_col = x_col
-        out = self.mul(w_col, x_col)
+        out = w_col @ x_col
         out = out.reshape(n_filters, h_out, w_out, inp_trans.shape[0])
         result = out.transpose(3, 1, 2, 0) + self.bias
         return result
@@ -146,12 +146,12 @@ class Conv(Layer):
         db = db.reshape(n_filter)
 
         d_upstream_reshaped = np.transpose(upstream_grad_trans, (1, 2, 3, 0)).reshape(n_filter, -1)
-        dw = self.mul(d_upstream_reshaped, self._x_col.T)
+        dw = d_upstream_reshaped @ self._x_col.T
         dw = dw.reshape(w.shape)
         dw = np.transpose(dw, (2, 3, 1, 0))
 
         w_reshape = w.reshape(n_filter, -1)
-        dx_col = self.mul(w_reshape.T, d_upstream_reshaped)
+        dx_col = w_reshape.T @ d_upstream_reshaped
 
         n, c, h, w = x.shape
         dx = self.col2im_indices(dx_col, (n, c, h, w), h_filter, w_filter, self._pad, self._stride)

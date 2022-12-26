@@ -40,9 +40,6 @@ class Layer(ABC):
     def mode(self):
         return self._mode
 
-    def mul(self, matrix_a, matrix_b):
-        return matrix_a @ matrix_b
-
     @mode.setter
     def mode(self, value):
         if not isinstance(value, Mode):
