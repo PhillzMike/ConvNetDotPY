@@ -1,6 +1,5 @@
 from layers.layer import Layer
 
-
 class Flatten(Layer):
 
     def __init__(self, inp_shape):
@@ -8,7 +7,11 @@ class Flatten(Layer):
 
     def forward_pass(self, inp):
         self.__inp_shape = inp.shape
-        return inp.reshape(self.__inp_shape[0], -1)
+        result = inp.reshape(self.__inp_shape[0], -1)
+        
+        return result
 
     def backward_pass(self, upstream_grad):
-        return upstream_grad.reshape(*self.__inp_shape)
+        result = upstream_grad.reshape(*self.__inp_shape)
+        
+        return result

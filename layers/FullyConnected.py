@@ -22,12 +22,13 @@ class FC(Layer):
         bound_for_bias = 1 / math.sqrt(fan_in)
 
         weight = np.random.uniform(-bound, bound, (fan_in, fan_out), dtype=np.float32)
-        # weight = np.float32(weight)
+
         bias = np.random.uniform(-bound_for_bias, bound_for_bias, (1, fan_out), dtype=np.float32)
-        # bias = np.float32(bias)
+
         self._params = {"weight": weight, "bias": bias}
         self._d_params = {"weight": np.zeros_like(weight, dtype=np.float32),
                           "bias": np.zeros_like(bias, dtype=np.float32)}
+        
 
     @property
     def weight(self):
@@ -53,26 +54,20 @@ class FC(Layer):
         return list(self._params.keys())
 
     def forward_pass(self, inp):
-        # start = timer()
         self._inp = inp
         result = np.dot(self._inp, self._params["weight"]) + self._params["bias"]
-        # end = timer()
-        # print("Forward pass - FC", end - start)
         return result
 
 
     def backward_pass(self, upstream_grad):
-        # start = timer()
+        upstream_grad = upstream_grad
         dw = np.dot(self._inp.T, upstream_grad)
         db = np.sum(upstream_grad, axis=0, keepdims=True)
         d_inp = np.dot(upstream_grad, self.weight.T)
 
         self._d_params["weight"] = dw
         self._d_params["bias"] = db
-        # end = timer()
-        # print("Backward pass - FC", end - start)
-        print("FC", d_inp)
-
+        
         return d_inp
 
     def update_params(self, optimizer, step):

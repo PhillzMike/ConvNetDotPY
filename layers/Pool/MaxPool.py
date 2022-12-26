@@ -5,8 +5,11 @@ Created on Sun Oct 21 13:23:20 2018
 @author: f
 """
 
+
 import cupy as np
+# import numpy as cp
 import cupyx
+from layers.im2col_cython import im2col_cython, col2im_cython
 
 from layers.Pool.Pool import Pool
 
@@ -34,7 +37,9 @@ class MaxPool(Pool):
         self._max_index = np.argmax(inp_col, axis=0)
         out = inp_col[self._max_index, range(self._max_index.size)]
         out = out.reshape(h_out, w_out, n, c)
-        return out.transpose(2, 0, 1, 3)
+        out = out.transpose(2, 0, 1, 3)
+        return out
+        
 
     def _get_im2col_indices(self, x_shape, field_height, field_width, padding=1, stride=1):
         # First figure out what the size of the output should be
@@ -83,34 +88,23 @@ class MaxPool(Pool):
                                            stride)
         cols_reshaped = cols.reshape(C * field_height * field_width, -1, N)
         cols_reshaped = cols_reshaped.transpose(2, 0, 1)
-        # x_padded[:,k,i,j] += cols_reshaped
+        # np.add.at(x_padded, (slice(None), k, i, j), cols_reshaped)
         cupyx.scatter_add(x_padded, (slice(None), k, i, j), cols_reshaped)
         if padding == 0:
             return x_padded
         return x_padded[:, :, padding:-padding, padding:-padding]
 
-    # def backward_pass(self, upstream_grad):
-    #
-    #     n, h, w, c = self._inp.shape
-    #     d_inp_col = np.empty(self._inp_col_shape, dtype=np.float32)
-    #     upstream_grad_flattened = np.transpose(upstream_grad, (1, 2, 0, 3)).ravel()
-    #
-    #     d_inp_col[self._max_index, range(self._max_index.size)] = upstream_grad_flattened
-    #     d_inp = col2im_cython(d_inp_col, n*c, 1, h, w, self._filter, self._filter, 0, self._stride)
-    #     return np.transpose(d_inp.reshape(n, c, h, w), (0, 2, 3, 1))
-
     def backward_pass(self, upstream_grad):
-        # inp_reshaped = np.transpose(self._inp, (0, 3, 1, 2))
-        # inp_reshaped = inp_reshaped.reshape(n * c, 1, h, w)
 
+        upstream_grad = np.array(upstream_grad)
         n, h, w, c = self._inp.shape
         d_inp_col = np.empty(self._inp_col_shape, dtype=np.float32)
         upstream_grad_flattened = np.transpose(upstream_grad, (1, 2, 0, 3)).ravel()
 
         d_inp_col[self._max_index, range(self._max_index.size)] = upstream_grad_flattened
         d_inp = self.col2im_indices(d_inp_col, (n * c, 1, h, w), self._filter, self._filter, 0, self._stride)
-        print("Max pool",d_inp)
-        return np.transpose(d_inp.reshape(n, c, h, w), (0, 2, 3, 1))
+        grad = np.transpose(d_inp.reshape(n, c, h, w), (0, 2, 3, 1))
+        return grad
 
     # def forward_pass(self, inp):
     #     self._inp = inp
@@ -121,7 +115,7 @@ class MaxPool(Pool):
     #     out_width = int((n - f) / stride + 1)
     #     out_height = int((h - f) / stride + 1)
     #     num_of_images = self._inp.shape[0]
-    #
+    
     #     output = np.empty((num_of_images, out_height, out_width, self._inp.shape[3]), dtype=np.float32)
     #     start_row = 0
     #     end_row = f
@@ -134,20 +128,22 @@ class MaxPool(Pool):
     #             output[:, i, j, :] = np.max(self._inp[:, start_row:end_row, start_col:end_col, :], axis=(1, 2))
     #             for k in range(filter_depth):
     #                 p = self._inp[:, start_row:end_row, start_col:end_col, k]
-    #                 indices[i, j, k, :, :] = np.unravel_index(np.argmax(p.reshape(num_of_images, f * f), axis=1),
+    #                 result = np.unravel_index(np.argmax(p.reshape(num_of_images, f * f), axis=1),
     #                                                           (f, f))
+    #                 indices[i, j, k, 0, :] = result[0]
+    #                 indices[i, j, k ,1, :] = result[1]
     #             start_col += stride
     #             end_col += stride
     #         start_row += stride
     #         end_row += stride
     #     self._indices = indices
     #     self._trained = True
-    #
+    
     #     return output
-    #
+
     # def backward_pass(self, upstream_grad):
     #     assert self._trained  # check to make sure forwardPass has been called
-    #
+    
     #     stride = self._stride
     #     positional_index = self._indices
     #     d_inp = np.empty(self._inp.shape, dtype=np.float32)

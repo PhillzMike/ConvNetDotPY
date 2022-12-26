@@ -1,0 +1,14 @@
+__pycache__/
+.idea/
+.ipynb_checkpoints
+cython_codes
+venv
+layers/test.py
+layers/profile.py
+layers/Profile.prof
+layers/im2col_cython.html
+layers/im2col_cython.c
+layers/im2col_cython.cp36-win_amd64.pyd
+layers/im2col_cython.cp310-win_amd64.pyd
+layers/build/
+.idea/ConvNetDotPY.iml

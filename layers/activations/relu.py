@@ -18,17 +18,11 @@ class Relu(Activation):
         super(Relu, self).__init__(inp_shape)
 
     def forward_pass(self, inp):
-        # start = timer()
         self._inp = inp
-        # result =  np.maximum(0, self._inp)
-        # end = timer()
-
-        # print("Forward pass - relu", end - start)
-        return np.maximum(0, self._inp)
+        result =  np.maximum(0, self._inp)
+        
+        return result
 
     def backward_pass(self, upstream):
-        # start = timer()
         upstream[self._inp < 0] = 0
-        # end = timer()
-        # print("Backward pass - relu", end - start)
         return upstream

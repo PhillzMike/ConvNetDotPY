@@ -11,7 +11,7 @@ import cupy as np
 from timeit import default_timer as timer
 import cupyx
 
-# from layers.im2col_cython import im2col_cython, col2im_cython
+from layers.im2col_cython import im2col_cython, col2im_cython
 from layers.layer import Layer
 
 
@@ -31,10 +31,8 @@ class Conv(Layer):
         gain = math.sqrt(2.0 / 6)
         std = gain / math.sqrt(fan_in)
         bound = math.sqrt(3.0) * std
-        print(bound)
         f = np.random.uniform(-bound, bound, (filter_shape + (input_shape[2], no_of_filters)), dtype=np.float32)
         bound_for_bias = 1 / math.sqrt(fan_in)
-        print(bound_for_bias)
         b = np.random.uniform(-bound_for_bias, bound_for_bias, no_of_filters, dtype=np.float32)
         # f = np.float32(f)
         # b = np.float32(b)
@@ -103,7 +101,6 @@ class Conv(Layer):
         return cols
 
     def forward_pass(self, inp):
-        # start = timer()
         self._inp = inp
         inp_trans = np.transpose(self._inp, (0, 3, 1, 2))
         filter_trans = np.transpose(self.filter, (3, 2, 0, 1))
@@ -121,8 +118,6 @@ class Conv(Layer):
         out = self.mul(w_col, x_col)
         out = out.reshape(n_filters, h_out, w_out, inp_trans.shape[0])
         result = out.transpose(3, 1, 2, 0) + self.bias
-        end = timer()
-        # print("Conv forward pass", end-start)
         return result
 
     def col2im_indices(self, cols, x_shape, field_height=3, field_width=3, padding=1,
@@ -135,13 +130,13 @@ class Conv(Layer):
                                      stride)
         cols_reshaped = cols.reshape(C * field_height * field_width, -1, N)
         cols_reshaped = cols_reshaped.transpose(2, 0, 1)
+        # np.add.at(x_padded, (slice(None), k, i, j), cols_reshaped)
         cupyx.scatter_add(x_padded, (slice(None), k, i, j), cols_reshaped)
         if padding == 0:
             return x_padded
         return x_padded[:, :, padding:-padding, padding:-padding]
 
     def backward_pass(self, upstream_grad):
-        # start = timer()
         x = np.transpose(self._inp, (0, 3, 1, 2))
         w = np.transpose(self.filter, (3, 2, 0, 1))
         upstream_grad_trans = np.transpose(upstream_grad, (0, 3, 1, 2))
@@ -158,16 +153,14 @@ class Conv(Layer):
         w_reshape = w.reshape(n_filter, -1)
         dx_col = self.mul(w_reshape.T, d_upstream_reshaped)
 
-        # n, c, h, w = x.shape
-        dx = self.col2im_indices(dx_col, x.shape, h_filter, w_filter, self._pad, self._stride)
+        n, c, h, w = x.shape
+        dx = self.col2im_indices(dx_col, (n, c, h, w), h_filter, w_filter, self._pad, self._stride)
         self._d_params["filter"] = dw
         self._d_params["bias"] = db
-        print(dx)
-        # result =  np.transpose(dx, (0, 2, 3, 1))
-        # end = timer()
-        # print("Conv backprop", end - start)
+
         return np.transpose(dx, (0, 2, 3, 1))
 
     def update_params(self, optimizer, step):
         for param in optimizer:
-            self._params[param] += optimizer[param].calc_update(step, self._d_params[param])
+            result = optimizer[param].calc_update(step, self._d_params[param])
+            self._params[param] += result
