@@ -12,8 +12,8 @@ from layers.layer import Layer
 class Pool(Layer, ABC):
     """An abstract class that models the pooling layers in a neural network"""
 
-    def __init__(self, inp_shape, f, stride=1):
+    def __init__(self, f, stride=1):
         self._filter = f
         self._stride = stride
-        super(Pool, self).__init__(inp_shape)
+        super(Pool, self).__init__()
         self._trained = False

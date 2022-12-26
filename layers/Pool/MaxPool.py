@@ -17,11 +17,9 @@ from layers.Pool.Pool import Pool
 class MaxPool(Pool):
     """A class that performs max pooling of an activation region in a neural network"""
 
-    def __init__(self, inp_shape, filter_shape, stride=1):
-        assert (inp_shape[0] - filter_shape) % stride == 0
-        assert (inp_shape[1] - filter_shape) % stride == 0
+    def __init__(self, filter_shape, stride=1):
         self._indices = 0
-        super(MaxPool, self).__init__(inp_shape, filter_shape, stride)
+        super(MaxPool, self).__init__(filter_shape, stride)
 
     def forward_pass(self, inp):
         self._inp = inp

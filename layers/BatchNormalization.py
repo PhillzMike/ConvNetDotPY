@@ -12,19 +12,16 @@ from mode.Mode import Mode
 
 class BatchNorm(Layer):
 
-    def __init__(self, inp_shape, eps=1e-8, mode=Mode.TRAIN):
-        assert type(inp_shape) == int or len(inp_shape) == 3, \
-            " The batch norm layer currently works for only fully connected layers and convolution layers"
+    def __init__(self, channels, eps=1e-8, mode=Mode.TRAIN):
         self._eps = eps
-        channel = inp_shape if type(inp_shape) == int else inp_shape[2]
-        gamma = np.ones(channel, dtype=np.float32)
-        beta = np.zeros(channel, dtype=np.float32)
+        gamma = np.ones(channels, dtype=np.float32)
+        beta = np.zeros(channels, dtype=np.float32)
         self._inpNorm = 0
         self._mean = 0
         self._var = 1
-        self._running_mean = np.zeros(channel, dtype=np.float32)
-        self._running_var = np.ones(channel, dtype=np.float32)
-        super(BatchNorm, self).__init__(inp_shape, mode)
+        self._running_mean = np.zeros(channels, dtype=np.float32)
+        self._running_var = np.ones(channels, dtype=np.float32)
+        super(BatchNorm, self).__init__(mode)
         self._params = {"gamma": gamma, "beta": beta}
         self._d_params = {"gamma": np.zeros_like(gamma, dtype=np.float32),
                           "beta": np.zeros_like(beta, dtype=np.float32)}

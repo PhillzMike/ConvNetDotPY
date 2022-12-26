@@ -24,20 +24,20 @@ class Conv(Layer):
 
         return fan_in, fan_out
 
-    def __init__(self, input_shape, filter_shape, no_of_filters, stride=1, padding=0):
+    def __init__(self, in_channel, out_channel, filter_shape, stride=1, padding=0):
         self._stride = stride
         self._pad = padding
-        fan_in, fan_out = Conv.calculate_fan_in_fan_out(input_shape[-1], filter_shape, no_of_filters)
+        fan_in, fan_out = Conv.calculate_fan_in_fan_out(in_channel, filter_shape, out_channel)
         gain = math.sqrt(2.0 / 6)
         std = gain / math.sqrt(fan_in)
         bound = math.sqrt(3.0) * std
-        f = np.random.uniform(-bound, bound, (filter_shape + (input_shape[2], no_of_filters)), dtype=np.float32)
+        f = np.random.uniform(-bound, bound, (filter_shape + (in_channel, out_channel)), dtype=np.float32)
         bound_for_bias = 1 / math.sqrt(fan_in)
-        b = np.random.uniform(-bound_for_bias, bound_for_bias, no_of_filters, dtype=np.float32)
+        b = np.random.uniform(-bound_for_bias, bound_for_bias, out_channel, dtype=np.float32)
         # f = np.float32(f)
         # b = np.float32(b)
 
-        super(Conv, self).__init__(input_shape)
+        super(Conv, self).__init__()
         self._params = {"filter": f, "bias": b}
         self._d_params = {"filter": np.zeros_like(f, dtype=np.float32), "bias": np.zeros_like(b, np.float32)}
 

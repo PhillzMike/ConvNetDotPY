@@ -2,8 +2,8 @@ from layers.layer import Layer
 
 class Flatten(Layer):
 
-    def __init__(self, inp_shape):
-        super(Flatten, self).__init__(inp_shape)
+    def __init__(self):
+        super(Flatten, self).__init__()
 
     def forward_pass(self, inp):
         self.__inp_shape = inp.shape

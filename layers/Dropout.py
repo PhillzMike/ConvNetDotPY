@@ -12,8 +12,8 @@ from mode.Mode import Mode
 
 class Dropout(Layer):
 
-    def __init__(self, inp_shape, p=0.5):
-        super(Dropout, self).__init__(inp_shape)
+    def __init__(self, p=0.5):
+        super(Dropout, self).__init__()
         self._p = np.float32(p)
         self._drop_prob = np.float32(1)
 

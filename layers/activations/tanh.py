@@ -5,8 +5,8 @@ from layers.activations.Activation import Activation
 
 class Tanh(Activation):
 
-    def __init__(self, inp_shape):
-        super(Tanh, self).__init__(inp_shape)
+    def __init__(self):
+        super(Tanh, self).__init__()
 
     def forward_pass(self, inp):
         self._inp = inp

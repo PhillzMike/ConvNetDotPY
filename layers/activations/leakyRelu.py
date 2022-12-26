@@ -3,8 +3,8 @@ from layers.activations.Activation import Activation
 
 class LeakyRelu(Activation):
 
-    def __init__(self, inp_shape):
-        super(LeakyRelu, self).__init__(inp_shape)
+    def __init__(self):
+        super(LeakyRelu, self).__init__()
 
     def forward_pass(self, inp):
         pass

@@ -14,8 +14,8 @@ from layers.activations.Activation import Activation
 class Relu(Activation):
     """This class performs the Rectified Linear Unit function used for non linearity in deep learning"""
 
-    def __init__(self, inp_shape):
-        super(Relu, self).__init__(inp_shape)
+    def __init__(self):
+        super(Relu, self).__init__()
 
     def forward_pass(self, inp):
         self._inp = inp

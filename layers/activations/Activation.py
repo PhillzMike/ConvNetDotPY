@@ -13,5 +13,5 @@ from layers.layer import Layer
 class Activation(Layer, ABC):
     """An abstract class that models the activations that would be used in the Library"""
 
-    def __init__(self, inp_shape):
-        super(Activation, self).__init__(inp_shape)
+    def __init__(self):
+        super(Activation, self).__init__()

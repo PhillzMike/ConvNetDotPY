@@ -5,8 +5,8 @@ from layers.activations.Activation import Activation
 
 class Sigmoid(Activation):
 
-    def __init__(self, inp_shape):
-        super(Sigmoid, self).__init__(inp_shape)
+    def __init__(self):
+        super(Sigmoid, self).__init__()
 
     @staticmethod
     def sigmoid(x):
