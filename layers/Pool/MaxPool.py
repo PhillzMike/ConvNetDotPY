@@ -34,9 +34,7 @@ class MaxPool(Pool):
         self._inp_col_shape = inp_col.shape
         self._max_index = np.argmax(inp_col, axis=0)
         out = inp_col[self._max_index, range(self._max_index.size)]
-        out = out.reshape(h_out, w_out, n, c)
-        out = out.transpose(2, 0, 1, 3)
-        return out
+        return out.reshape(h_out, w_out, n, c).transpose(2,0,1,3)
         
 
     def _get_im2col_indices(self, x_shape, field_height, field_width, padding=1, stride=1):
@@ -79,7 +77,6 @@ class MaxPool(Pool):
                        stride=1):
         """ An implementation of col2im based on fancy indexing and np.add.at """
         N, C, H, W = x_shape
-
         H_padded, W_padded = H + 2 * padding, W + 2 * padding
         x_padded = np.zeros((N, C, H_padded, W_padded), dtype=cols.dtype)
         k, i, j = self._get_im2col_indices(x_shape, field_height, field_width, padding,
@@ -93,16 +90,13 @@ class MaxPool(Pool):
         return x_padded[:, :, padding:-padding, padding:-padding]
 
     def backward_pass(self, upstream_grad):
-
-        upstream_grad = np.array(upstream_grad)
         n, h, w, c = self._inp.shape
-        d_inp_col = np.empty(self._inp_col_shape, dtype=np.float32)
+        d_inp_col = np.zeros(self._inp_col_shape, dtype=np.float32)
         upstream_grad_flattened = np.transpose(upstream_grad, (1, 2, 0, 3)).ravel()
 
         d_inp_col[self._max_index, range(self._max_index.size)] = upstream_grad_flattened
         d_inp = self.col2im_indices(d_inp_col, (n * c, 1, h, w), self._filter, self._filter, 0, self._stride)
-        grad = np.transpose(d_inp.reshape(n, c, h, w), (0, 2, 3, 1))
-        return grad
+        return d_inp.reshape(n, c, h, w).transpose(0,2,3,1)
 
     # def forward_pass(self, inp):
     #     self._inp = inp
