@@ -14,14 +14,15 @@ class Dropout(Layer):
 
     def __init__(self, p=0.5):
         super(Dropout, self).__init__()
-        self._p = np.float32(p)
+        assert 0 <= p < 1, "Dropout probability must be in range [0, 1)"
+        self._p = 1 - np.float32(p)
         self._drop_prob = np.float32(1)
 
     def forward_pass(self, inp):
         self._inp = inp
         self._drop_prob = np.float32(1)
         if self.mode == Mode.TRAIN:
-            self._drop_prob = ((np.random.rand(*self._inp.shape, dtype=np.float32) < self._p) / (1 - self._p))
+            self._drop_prob = ((np.random.rand(*self._inp.shape, dtype=np.float32) < self._p) / (self._p))
             # self._drop_prob = ((np.float32(np.random.rand(*self._inp.shape)) < self.probability) / self.probability)
         result = self._inp * self._drop_prob
         return result
