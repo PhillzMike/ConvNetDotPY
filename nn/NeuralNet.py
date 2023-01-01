@@ -140,9 +140,15 @@ class NN:
             validation_loss.append(valid_loss)
             validation_accuracy.append(accuracy)
 
-            print()
-
         return training_loss, validation_loss, validation_accuracy
+
+
+    
+    def summary(self):
+        total_params = 0
+        for layer in self.layers:
+            total_params += layer.getParamsCount()
+        return f'There are {total_params} total params'
 
     def save(self, filename):
         with open(filename, 'wb') as output:  # Overwrites any existing file.

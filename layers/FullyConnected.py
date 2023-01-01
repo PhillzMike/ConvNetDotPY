@@ -52,6 +52,9 @@ class FC(Layer):
 
     def trainable_parameters(self):
         return list(self._params.keys())
+    
+    def getParamsCount(self):
+        return self._params["weight"].size + self._params["bias"].size
 
     def forward_pass(self, inp):
         self._inp = inp

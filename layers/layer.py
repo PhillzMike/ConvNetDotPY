@@ -39,6 +39,9 @@ class Layer(ABC):
 
     def trainable_parameters(self):
         return []
+    
+    def getParamsCount(self):
+        return 0
 
     @abstractmethod
     def forward_pass(self, inp):

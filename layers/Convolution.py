@@ -63,6 +63,9 @@ class Conv(Layer):
 
     def trainable_parameters(self):
         return list(self._params.keys())
+    
+    def getParamsCount(self):
+        return self._params["filter"].size + self._params["bias"].size
 
     def _get_im2col_indices(self, x_shape, field_height, field_width, padding=1, stride=1):
         # First figure out what the size of the output should be
