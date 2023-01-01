@@ -9,6 +9,7 @@ import math
 import pickle
 from builtins import range
 from timeit import default_timer as timer
+from tqdm import tqdm
 
 import cupy as np
 
@@ -47,10 +48,16 @@ class NN:
             return 0,0
         loss = 0
         accuracy = 0
-        for image_b, label_b in NN.__next_batch(images, labels, batch):
+        processed_data_count = 0
+        
+        for image_b, label_b in (pbar := tqdm(NN.__next_batch(images, labels, batch), desc=f'Validating' , total=(images.shape[0] // batch) + 1)):
             logits, label_gotten = self.test(image_b)
             loss += (self.loss_function.forward_pass(logits, label_b) * image_b.shape[0])
             accuracy += np.mean(label_gotten == label_b) * 100 * label_b.shape[0]
+
+            processed_data_count += image_b.shape[0]
+            pbar.set_postfix({'loss': loss/processed_data_count, 'acc': accuracy/processed_data_count})
+
         return loss/images.shape[0], accuracy/images.shape[0]
 
     @staticmethod
@@ -95,41 +102,46 @@ class NN:
 
         train_data, train_label, valid_data, valid_label = NN.__get_train_and_valid_data(data, label,
                                                                                          validation_train_ratio)
-        start = timer()
         training_loss = list()
         validation_loss = list()
         validation_accuracy = list()
         for epoch in range(1, no_of_epochs + 1):
             running_loss = 0
+            processed_data_count = 0
             learning_rate = learning_rate_func(epoch)
-            for X, Y in NN.__next_batch(train_data, train_label, batch):
+            
+            for X, Y in (pbar := tqdm(NN.__next_batch(train_data, train_label, batch),desc=f'Training - Epoch: {epoch}' , total=(train_data.shape[0] // batch) + 1)):
                 #   forward pass into the network
                 logits = NN.__forward_pass(X, self.layers, Mode.TRAIN)
                 #   calculate loss
                 data_loss = self.loss_function.forward_pass(logits, Y)
                 running_loss += data_loss * X.shape[0]
+                processed_data_count += X.shape[0]
                 #   calculate loss gradient with respect to logits
                 d_scores = self.loss_function.backward_pass(Y)
                 #   backward pass through the network
                 dx = NN.__backward_pass(d_scores, self.layers)
                 del dx
+
+                # update progress bar
+                pbar.set_postfix({'loss': running_loss / processed_data_count})
+                
                 #   update parameters based on gradients calculated
                 for layer in self.layers:
                     if layer in self.optimizers:
                         layer.update_params(self.optimizers[layer], learning_rate)
-            # np.cuda.get_current_stream().synchronize()
+
+                
+            np.cuda.get_current_stream().synchronize()
             training_loss.append(running_loss / train_data.shape[0])
             # calculate validation loss
             valid_loss, accuracy = self.getValidationStats(valid_data, valid_label, batch)
-            # np.cuda.get_current_stream().synchronize()
+            np.cuda.get_current_stream().synchronize()
             validation_loss.append(valid_loss)
             validation_accuracy.append(accuracy)
-            if epoch % print_every == 0:
-                print("The validation loss is ", validation_loss[-1], " Accuracy: ", validation_accuracy[-1])
-                print("The loss after ", epoch, " iterations, learning rate is", learning_rate, "iterations is ",
-                      training_loss[-1], " using ", timer() - start)
 
-        # np.cuda.get_current_stream().synchronize()
+            print()
+
         return training_loss, validation_loss, validation_accuracy
 
     def save(self, filename):
