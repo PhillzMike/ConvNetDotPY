@@ -117,11 +117,11 @@ class NN:
                 for layer in self.layers:
                     if layer in self.optimizers:
                         layer.update_params(self.optimizers[layer], learning_rate)
-            np.cuda.get_current_stream().synchronize()
+            # np.cuda.get_current_stream().synchronize()
             training_loss.append(running_loss / train_data.shape[0])
             # calculate validation loss
             valid_loss, accuracy = self.getValidationStats(valid_data, valid_label, batch)
-            np.cuda.get_current_stream().synchronize()
+            # np.cuda.get_current_stream().synchronize()
             validation_loss.append(valid_loss)
             validation_accuracy.append(accuracy)
             if epoch % print_every == 0:
@@ -129,7 +129,7 @@ class NN:
                 print("The loss after ", epoch, " iterations, learning rate is", learning_rate, "iterations is ",
                       training_loss[-1], " using ", timer() - start)
 
-        np.cuda.get_current_stream().synchronize()
+        # np.cuda.get_current_stream().synchronize()
         return training_loss, validation_loss, validation_accuracy
 
     def save(self, filename):
