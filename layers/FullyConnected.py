@@ -58,8 +58,7 @@ class FC(Layer):
 
     def forward_pass(self, inp):
         self._inp = inp
-        result = np.dot(self._inp, self._params["weight"]) + self._params["bias"]
-        return result
+        return np.dot(self._inp, self._params["weight"]) + self._params["bias"]
 
 
     def backward_pass(self, upstream_grad):

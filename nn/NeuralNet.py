@@ -53,12 +53,12 @@ class NN:
         for image_b, label_b in (pbar := tqdm(NN.__next_batch(images, labels, batch), desc=f'Validating' , total=(images.shape[0] // batch) + 1)):
             logits, label_gotten = self.test(image_b)
             loss += (self.loss_function.forward_pass(logits, label_b) * image_b.shape[0])
-            accuracy += np.mean(label_gotten == label_b) * 100 * label_b.shape[0]
+            accuracy += np.sum(label_gotten == label_b)
 
             processed_data_count += image_b.shape[0]
-            pbar.set_postfix({'loss': loss/processed_data_count, 'acc': accuracy/processed_data_count})
+            pbar.set_postfix({'loss': loss/processed_data_count, 'acc': (accuracy/processed_data_count) * 100})
 
-        return loss/images.shape[0], accuracy/images.shape[0]
+        return loss/images.shape[0], (accuracy/images.shape[0]) * 100
 
     @staticmethod
     def __forward(inputs, cnn_layers, mode):

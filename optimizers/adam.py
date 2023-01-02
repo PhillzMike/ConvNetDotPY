@@ -27,5 +27,4 @@ class Adam(Optimizer):
         second_unbias = self.__second_moment / (1 - (self.__beta2 ** self.__t))
         self.__t += 1
         result = -step * first_unbias / (np.sqrt(second_unbias) + self.__eps)
-        # print(result)
         return result

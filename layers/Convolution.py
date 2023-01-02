@@ -100,8 +100,7 @@ class Conv(Layer):
 
         cols = x_padded[:, k, i, j]
         c = x.shape[1]
-        cols = cols.transpose(1, 2, 0).reshape(field_height * field_width * c, -1)
-        return cols
+        return cols.transpose(1, 2, 0).reshape(field_height * field_width * c, -1)
 
     def forward_pass(self, inp):
         self._inp = inp
@@ -120,8 +119,7 @@ class Conv(Layer):
         self._x_col = x_col
         out = w_col @ x_col
         out = out.reshape(n_filters, h_out, w_out, inp_trans.shape[0])
-        result = out.transpose(3, 1, 2, 0) + self.bias
-        return result
+        return out.transpose(3, 1, 2, 0) + self.bias
 
     def col2im_indices(self, cols, x_shape, field_height=3, field_width=3, padding=1,
                        stride=1):

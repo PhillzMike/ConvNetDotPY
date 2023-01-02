@@ -7,11 +7,7 @@ class Flatten(Layer):
 
     def forward_pass(self, inp):
         self.__inp_shape = inp.shape
-        result = inp.reshape(self.__inp_shape[0], -1)
+        return inp.reshape(self.__inp_shape[0], -1)
         
-        return result
-
     def backward_pass(self, upstream_grad):
-        result = upstream_grad.reshape(*self.__inp_shape)
-        
-        return result
+        return upstream_grad.reshape(*self.__inp_shape)
